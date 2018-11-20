@@ -70,15 +70,15 @@ type DialogResponseMetadata struct {
 
 // OpenDialog opens a dialog window where the triggerID originated from.
 // EXPERIMENTAL: dialog functionality is currently experimental, api is not considered stable.
-func (api *Client) OpenDialog(triggerID string, dialog Dialog) (err error) {
+func (api *Client) OpenDialog(triggerID string, dialog Dialog) (err error, res DialogOpenResponse) {
 	return api.OpenDialogContext(context.Background(), triggerID, dialog)
 }
 
 // OpenDialogContext opens a dialog window where the triggerId originated from with a custom context
 // EXPERIMENTAL: dialog functionality is currently experimental, api is not considered stable.
-func (api *Client) OpenDialogContext(ctx context.Context, triggerID string, dialog Dialog) (err error) {
+func (api *Client) OpenDialogContext(ctx context.Context, triggerID string, dialog Dialog) (err error, res DialogOpenResponse) {
 	if triggerID == "" {
-		return errors.New("received empty parameters")
+		return errors.New("received empty parameters"), DialogOpenResponse{}
 	}
 
 	req := DialogTrigger{
@@ -88,14 +88,14 @@ func (api *Client) OpenDialogContext(ctx context.Context, triggerID string, dial
 
 	encoded, err := json.Marshal(req)
 	if err != nil {
-		return err
+		return err, DialogOpenResponse{}
 	}
 
 	response := &DialogOpenResponse{}
 	endpoint := APIURL + "dialog.open"
 	if err := postJSON(ctx, api.httpclient, endpoint, api.token, encoded, response, api); err != nil {
-		return err
+		return err, *response
 	}
 
-	return response.Err()
+	return response.Err(), *response
 }
